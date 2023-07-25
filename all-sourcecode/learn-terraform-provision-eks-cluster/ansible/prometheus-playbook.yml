@@ -1,0 +1,18 @@
+- name: Ansible Playbook to Install and Setup prometheus on Amazon Linux
+  hosts: all
+  tasks:
+    - name: Download the prometheus
+      get_url:
+        url: https://github.com/prometheus/prometheus/releases/download/v2.39.1/prometheus-2.39.1.linux-amd64.tar.gz
+        dest: /opt/
+
+    - name: Untar prometheus
+      unarchive:
+        src: /opt/prometheus-2.39.1.linux-amd64.tar.gz
+        dest: /opt/
+        remote_src: yes
+
+    - name: Start prometheus
+      shell: |
+        cd /opt/prometheus-2.39.1.linux-amd64
+        nohup ./prometheus > /opt/null 2>&1 &

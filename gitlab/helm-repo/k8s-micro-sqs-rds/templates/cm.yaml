@@ -1,0 +1,13 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ include "k8s-micro-sqs-rds.fullname" . }}
+  labels:
+    {{- include "k8s-micro-sqs-rds.labels" . | nindent 4 }}
+data:
+  AWS_REGION: {{ .Values.region }}
+  SQS_QUEUE_URL: {{ .Values.sqs_queue_url }}
+  DB_HOST: {{ .Values.db_host }}
+  DB_USER:  {{ .Values.db_user }}
+  DB_NAME: {{ .Values.db_name }}
+  DB_TABLE: {{ .Values.db_table  }}

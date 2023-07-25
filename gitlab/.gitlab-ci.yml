@@ -1,0 +1,124 @@
+image: docker:20.10.16
+
+variables:
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+
+services:
+  - name: docker:19.03.0-dind
+    entrypoint: ["env", "-u", "DOCKER_HOST"]
+    command: ["dockerd-entrypoint.sh"]
+     
+stages:
+  - build
+  - dev-deploy 
+  - prod-deploy
+  - prod-dr-deploy
+
+k8s-micro-frontend-docker-build:
+  stage: build
+  script: 
+    - cd k8s-micro-frontend
+    - ls -ltr 
+    - apk update 
+    - apk add --no-cache curl jq python3 py3-pip
+    - pip install awscli
+    - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 315073111691.dkr.ecr.us-east-1.amazonaws.com
+    - docker build -t 315073111691.dkr.ecr.us-east-1.amazonaws.com/microservie-frontend-k8s:latest .
+    - docker push 315073111691.dkr.ecr.us-east-1.amazonaws.com/microservie-frontend-k8s:latest
+  when: manual
+  tags: 
+    - example 
+
+k8s-micro-backend-docker-build:
+  stage: build
+  script: 
+    - cd k8s-micro-backend
+    - ls -ltr 
+    - apk update 
+    - apk add --no-cache curl jq python3 py3-pip
+    - pip install awscli
+    - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 315073111691.dkr.ecr.us-east-1.amazonaws.com
+    - docker build -t 315073111691.dkr.ecr.us-east-1.amazonaws.com/microservice-backend-k8s:latest .
+    - docker push  315073111691.dkr.ecr.us-east-1.amazonaws.com/microservice-backend-k8s:latest
+  when: manual
+  tags: 
+    - example 
+
+k8s-micro-sqs-docker-build:
+  stage: build
+  script: 
+    - cd k8s-micro-sqs-rds
+    - ls -ltr 
+    - apk update 
+    - apk add --no-cache curl jq python3 py3-pip
+    - pip install awscli
+    - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 315073111691.dkr.ecr.us-east-1.amazonaws.com
+    - docker build -t 315073111691.dkr.ecr.us-east-1.amazonaws.com/microservice-sqs-rds-k8s:latest .
+    - docker push  315073111691.dkr.ecr.us-east-1.amazonaws.com/microservice-sqs-rds-k8s:latest
+  when: manual
+  tags: 
+    - example  
+
+dev-helm-deploy:
+  image: dtzar/helm-kubectl:3.9.3
+  stage: dev-deploy
+  script: 
+    - kubectl version --short --client
+    - helm version 
+    - mkdir ~/.kube
+    - echo "$kube_config" | base64 -d >~/.kube/config
+    - apk add --no-cache curl jq python3 py3-pip
+    - pip install awscli
+    - kubectl get nodes 
+    - kubectl get ns 
+    - helm list
+    - helm upgrade --install k8s-micro-frontend ./helm-repo/k8s-micro-frontend  -n  k8s-frontend
+  when: manual 
+  tags: 
+    - example 
+
+
+
+
+
+dev-sqs-rds-helm-deploy:
+  image: dtzar/helm-kubectl:3.9.3
+  stage: dev-deploy
+  script: 
+    - kubectl version --short --client
+    - helm version 
+    - mkdir ~/.kube
+    - echo "$kube_config" | base64 -d >~/.kube/config
+    - apk add --no-cache curl jq python3 py3-pip
+    - pip install awscli
+    - kubectl get nodes 
+    - kubectl get ns 
+    - helm list
+    - helm upgrade --install k8s-micro-sqs-rds ./helm-repo/k8s-micro-sqs-rds -n k8s-consumer
+  when: manual 
+  tags: 
+    - example
+
+
+dev-backend-helm-deploy:
+  image: dtzar/helm-kubectl:3.9.3
+  stage: dev-deploy
+  script: 
+    - kubectl version --short --client
+    - helm version 
+    - mkdir ~/.kube
+    - echo "$kube_config" | base64 -d >~/.kube/config
+    - apk add --no-cache curl jq python3 py3-pip
+    - pip install awscli
+    - kubectl get nodes 
+    - kubectl get ns 
+    - helm list
+    - helm upgrade --install k8s-micro-backend ./helm-repo/k8s-micro-backend -n k8s-micro-backend
+  when: manual 
+  tags: 
+    - example
+
+
+

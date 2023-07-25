@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-cm
+  namespace: backend
+data:
+  database-user: mysqluser
+  database-host: mybd.coeppzddtpfy.us-east-1.rds.amazonaws.com
+  database-name: mybd

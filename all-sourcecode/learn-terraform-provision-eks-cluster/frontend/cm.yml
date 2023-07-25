@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: docker-app
+  namespace: frontend1
+data:
+  backend_url: "http://service-app.backend"

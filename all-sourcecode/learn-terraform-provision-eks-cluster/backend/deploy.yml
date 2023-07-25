@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-app
+  namespace: backend
+  labels:
+    app: docker-app
+spec:
+  selector:
+    matchLabels:
+      app: docker-app
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: docker-app
+    spec:
+      containers:
+      - name: docker-app
+        image:
+        ports:
+        - containerPort: 80
+          name: docker-app
+          env:
+          - name: DB_USER
+            valueFrom:
+              configMapKeyRef:
+                name: backend-cm
+                key: database-user
+          - name: DB_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: backend-cm
+                key: database-host
+          - name: DB_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: backend-cm
+                key: database-name
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: backend-se
+                key: database-password
+
+
+
